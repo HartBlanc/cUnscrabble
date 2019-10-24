@@ -1,3 +1,6 @@
+#ifndef UNSCRABBLE_H_INCLUDED
+#define UNSCRABBLE_H_INCLUDED
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -110,3 +113,5 @@ void first_plays(tile*** brd, rack* rck, GADDAG* lexicon);
 
 
 GADDAG* init_gdg(const char* file_path);
+
+#endif
