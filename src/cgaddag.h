@@ -1,3 +1,6 @@
+#ifndef GADDAG_H_INCLUDED
+#define GADDAG_H_INCLUDED
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,8 +15,7 @@
 #define REVERSE 28
 #define BLANK 29
 
-#ifndef GADDAG_H_INCLUDED //#TO-DO - check #ifndef #endif usage
-#define GADDAG_H_INCLUDED
+
 typedef struct Result_Struct Result;
 typedef struct GADDAG_Struct GADDAG;
 
