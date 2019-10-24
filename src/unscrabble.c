@@ -283,6 +283,7 @@ uint8_t last_occupied_below(tile*** brd, uint8_t y, uint8_t x){
 void update_h_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t upper_limit, uint8_t lower_limit, uint8_t x){
 	uint32_t curr_node = 0;
 	uint16_t cross_score = 0;
+	uint16_t prefix_score = 0;
 
 	for (uint8_t curr = lower_limit; curr > upper_limit; curr--){
 		curr_node  = gdg_follow_edge_idx(lexicon, curr_node, brd[curr][x]->ch_idx);
@@ -307,7 +308,6 @@ void update_h_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t upper_limit, uint
 		for (size_t i = 0; i < lexicon->edge_counts[start_node]; i++){
 			uint8_t ch_idx = lexicon->edge_chars[curr_node][i];
 			curr_node = gdg_follow_edge_idx(lexicon, start_node, ch_idx);
-			uint16_t prefix_score = 0;
 
 			for (prefix_y = upper_limit - 2; curr_node && prefix_y > prefix_limit; prefix_y--){
 				curr_node = gdg_follow_edge_idx(lexicon, curr_node, brd[prefix_y][x]->ch_idx);
@@ -380,9 +380,6 @@ void update_v_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t left_limit, uint8
 				BIT_SET(brd[y][left_limit - 1]->h_cross_set, ch_idx);	
 			}
 
-			if (follow_word_x(brd, lexicon, curr_node, y, left_limit - 2, 0, -1)){
-				BIT_SET(brd[y][left_limit - 1]->v_cross_set, ch_idx);
-			}
 		}
 	}
 
@@ -434,7 +431,7 @@ void update_v_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t left_limit, uint8
 // 	//bool anchor = brd.empties[y-1][x] & (!brd.empties[y][x] | (brd.empties[y+1][x] & (!brd.empties[y][x+1] | !brd.empties[y][x-1])));
 // }
 
-tile*** init_board(){
+tile*** init_board(void){
 
 		uint8_t LMS[BOARDSIZE][BOARDSIZE] = {
 			{3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3},
@@ -513,37 +510,38 @@ GADDAG* init_gdg(const char* file_path){
 }
 
 
+// int main(){
+// 	char* rck_str = "jackleg";
+// 	rack rck;
+// 	rck.bitset = 0;
+// 	rck.char_counts = calloc(GDG_MAX_CHARS, sizeof(uint8_t));
+// 	rck.chars = malloc((RACKSIZE) * sizeof(uint8_t));
 
-int main(){
-	char* rck_str = "jackleg";
-	rack rck;
-	rck.bitset = 0;
-	rck.char_counts = calloc(GDG_MAX_CHARS, sizeof(uint8_t));
-	rck.chars = malloc((RACKSIZE) * sizeof(uint8_t));
-	for (size_t i = 0; i < RACKSIZE; i++){
-		rck.chars[i] = rck_str[i] - 96;
-	}
-	tile*** brd = init_board();
+// 	for (size_t i = 0; i < RACKSIZE; i++){
+// 		rck.chars[i] = rck_str[i] - 96;
+// 	}
 
-	GADDAG* lexicon = init_gdg("ENABLE.txt");
+// 	tile*** brd = init_board();
 
-	// generate first play if board is empty
-	// play* all_plays = gen_first_plays(board, rack, lexicon)
-	// place(select_move(all_plays))
-	plays = malloc(sizeof(play) * CAP_SIZE);
-	printf("%d", lexicon->edge_counts[0]);
-	// while (true){
-	// printf("Which tiles are on your rack\n");
-	// fgets(rck_str, 500, stdin);
-	printf("\nMADE IT THIS FAR\n");
-	for (size_t i = 0; i < RACKSIZE; i++){
-		BIT_SET(rck.bitset, rck_str[i] - 96);
-		rck.char_counts[rck_str[i] - 96]++;
-	}
-	printf("MADE IT THIS FAR\n");
-    first_plays(brd, &rck, lexicon);
-    // place();
-    printf("\n %d \n", play_count);
+// 	GADDAG* lexicon = init_gdg("ENABLE.txt");
 
-	// then generate
-}
+// 	// generate first play if board is empty
+// 	// play* all_plays = gen_first_plays(board, rack, lexicon)
+// 	// place(select_move(all_plays))
+// 	plays = malloc(sizeof(play) * CAP_SIZE);
+// 	printf("%d", lexicon->edge_counts[0]);
+// 	// while (true){
+// 	// printf("Which tiles are on your rack\n");
+// 	// fgets(rck_str, 500, stdin);
+// 	printf("\nMADE IT THIS FAR\n");
+// 	for (size_t i = 0; i < RACKSIZE; i++){
+// 		BIT_SET(rck.bitset, rck_str[i] - 96);
+// 		rck.char_counts[rck_str[i] - 96]++;
+// 	}
+// 	printf("MADE IT THIS FAR\n");
+//     first_plays(brd, &rck, lexicon);
+//     // place();
+//     printf("\n %d \n", play_count);
+
+// 	// then generate
+// }

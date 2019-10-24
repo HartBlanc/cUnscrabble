@@ -111,6 +111,8 @@ void place(play* ply, tile*** brd, rack* rck, GADDAG* lexicon);
 
 void first_plays(tile*** brd, rack* rck, GADDAG* lexicon);
 
+tile*** init_board(void);
+
 
 GADDAG* init_gdg(const char* file_path);
 
