@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <zlib.h>
 #include "cgaddag.h"
+
+//why is this here?
 #include "cgaddag.c"
 #include "unscrabble.h"
 
@@ -26,8 +28,9 @@ char* gdg_path_to_ch(uint8_t* gdg_path, uint8_t arc_count){
 	char* ch_path = malloc(arc_count * sizeof(char));
 	size_t i = 0;
 
-	for (i = 0; i < arc_count; i++)
+	for (i = 0; i < arc_count; i++){
 		ch_path[i] = gdg_idx_to_ch(gdg_path[i]);
+	}
 
 	ch_path[i] = '\0';
 	return ch_path;
@@ -35,23 +38,27 @@ char* gdg_path_to_ch(uint8_t* gdg_path, uint8_t arc_count){
 
 bool str_check(uint8_t* gdg_path, uint8_t* cmp, uint8_t arc_count){
 	for (size_t i=0; i < arc_count; i++){
-		if (gdg_idx_to_ch(gdg_path[i]) != cmp[i])
+		if (gdg_idx_to_ch(gdg_path[i]) != cmp[i]){
 			return 0;
+		}
 	}
 	return 1;
 }
 
 uint8_t blank_pos(rack* rck){
 	for (size_t i=0; i < RACKSIZE; i++){
-		if (rck->chars[i] == BLANK) return i + 1;
+		if (rck->chars[i] == BLANK){
+			return i + 1;
+		}
 	}
 	return 0;
 }
 
 rack new_rack(const rack* old_rck, uint8_t L, uint8_t i){
 	rack new_rck = *old_rck;
-	if (new_rck.char_counts[L] == 1)
+	if (new_rck.char_counts[L] == 1){
 		BIT_CLEAR(new_rck.bitset, L);
+	}
 	new_rck.chars[i] = '\0';
 	new_rck.char_counts[L]--;
 	return new_rck;
@@ -135,9 +142,10 @@ void GoOn(uint8_t start_x, uint8_t curr_x, uint8_t y, uint8_t ch_idx, uint8_t* g
 		}
 		if (next_node){
 			// If there is room to the left get the next char to the left
-			if (curr_x > 0)
+			if (curr_x > 0){
 				Gen(start_x, curr_x - 1, y, next_node, rck, brd, lexicon, gdg_path, blanks, arc_count,
 					hori_score, cross_score, hm, empties);
+			}
 
 			//If possible extend the current prefix rightwards
 			next_node = gdg_follow_edge_idx(lexicon, next_node, REVERSE); // change_direction
@@ -157,9 +165,10 @@ void GoOn(uint8_t start_x, uint8_t curr_x, uint8_t y, uint8_t ch_idx, uint8_t* g
 			printf("HERE %d %d %d %d\n", hori_score, hm, empties, cross_score);
 			RecordPlay(gdg_path, start_x, y, blanks, (hori_score * hm) + (empties == 7 ? BINGO : 0) + cross_score);
 		}
-		if (next_node && (curr_x + 1) < BOARDSIZE)
+		if (next_node && (curr_x + 1) < BOARDSIZE){
 			Gen(start_x, curr_x + 1, y, next_node, rck, brd, lexicon, gdg_path, blanks, arc_count,
 				hori_score, cross_score, hm, empties);
+		}
 	}
 }
 
@@ -186,7 +195,9 @@ void RecordPlay(uint8_t* gdg_path, uint8_t x, uint8_t y, bool* blanks, uint16_t 
 	if (play_count > play_size) {
 		play_size *= 2;
 		plays = realloc(plays, play_size);
-		if (plays == NULL) printf("plays too large....");
+		if (plays == NULL){ 
+			printf("plays too large....");
+		}
 	}
 
         plays[play_count++] = *new_play;
@@ -226,17 +237,19 @@ void place(play* ply, tile*** brd, rack* rck, GADDAG* lexicon){
 			}
 			(pos <= 0) ? pos -- : pos++;
 		}
-		else
+		else {
 			left_limit = ply->x + pos;
 			reversed = true;
 			pos = 1;
+		}
 
 	}
 
-	if (reversed) //pos is rightmost tile, left_limit defined
+	if (reversed){ //pos is rightmost tile, left_limit defined
 		update_v_cross_sets(brd, lexicon, left_limit, ply->x + pos, ply->y);
+	}
 
-	else{ //pos is leftmost tile, anchor is rightmost tile
+	else { //pos is leftmost tile, anchor is rightmost tile
 		update_v_cross_sets(brd, lexicon, ply->y, ply->x + pos, ply->y);
 		
 		//anchor only needs to be updated if was empty before playing word	
@@ -247,8 +260,9 @@ void place(play* ply, tile*** brd, rack* rck, GADDAG* lexicon){
 
 uint8_t last_occupied_above(tile*** brd, uint8_t y, uint8_t x){
 	for (uint8_t curr = y; curr > 0; curr--){
-		if (brd[curr - 1][x]->empty)
+		if (brd[curr - 1][x]->empty){
 			return curr;
+		}
 	}
 	return 0;
 }
@@ -256,8 +270,9 @@ uint8_t last_occupied_above(tile*** brd, uint8_t y, uint8_t x){
 uint8_t last_occupied_below(tile*** brd, uint8_t y, uint8_t x){
 	
 	for (uint8_t curr = y; curr < (BOARDSIZE - 1); curr++){
-		if (brd[curr + 1][x]->empty)
+		if (brd[curr + 1][x]->empty){
 			return curr;
+		}
 	}
 
 	return BOARDSIZE - 1;
@@ -269,9 +284,10 @@ void update_h_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t upper_limit, uint
 	uint32_t curr_node = 0;
 	uint16_t cross_score = 0;
 
-	for (uint8_t curr = lower_limit; curr > upper_limit; curr--)
+	for (uint8_t curr = lower_limit; curr > upper_limit; curr--){
 		curr_node  = gdg_follow_edge_idx(lexicon, curr_node, brd[curr][x]->ch_idx);
 		cross_score += brd[curr][x]->value;
+	}
 
 
 
@@ -282,8 +298,9 @@ void update_h_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t upper_limit, uint
 		uint8_t prefix_y;
 		brd[upper_limit - 1][x]->h_cross_set = 0;
 
-		for (prefix_y = upper_limit - 2; prefix_y >= 0 && !brd[prefix_y][x]->empty; prefix_y--)
+		for (prefix_y = upper_limit - 2; prefix_y >= 0 && !brd[prefix_y][x]->empty; prefix_y--){
 			prefix_score += brd[prefix_y][x]->value;
+		}
 
 		uint8_t prefix_limit = prefix_y - 1;
 
@@ -292,18 +309,21 @@ void update_h_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t upper_limit, uint
 			curr_node = gdg_follow_edge_idx(lexicon, start_node, ch_idx);
 			uint16_t prefix_score = 0;
 
-			for (prefix_y = upper_limit - 2; curr_node && prefix_y > prefix_limit; prefix_y--)
+			for (prefix_y = upper_limit - 2; curr_node && prefix_y > prefix_limit; prefix_y--){
 				curr_node = gdg_follow_edge_idx(lexicon, curr_node, brd[prefix_y][x]->ch_idx);
 				prefix_score += brd[prefix_y][x]->value;
+			}
 
-			if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[prefix_y][x]->ch_idx))
+			if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[prefix_y][x]->ch_idx)){
 				BIT_SET(brd[upper_limit - 1][x]->h_cross_set, ch_idx);
+			}
 		}
 	}
 
-	else if (upper_limit > 0)
+	else if (upper_limit > 0){
 		brd[upper_limit - 1][x]->h_cross_score = cross_score;
 		brd[upper_limit - 1][x]->h_cross_set = lexicon->letter_sets[curr_node];
+	}
 		
 
 
@@ -317,25 +337,29 @@ void update_h_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t upper_limit, uint
 				uint8_t ch_idx = lexicon->edge_chars[rev_node][i];
 				curr_node = gdg_follow_edge_idx(lexicon, rev_node, ch_idx);
 
-				for (suffix_y = lower_limit + 2; curr_node && suffix_y < BOARDSIZE - 1 && !brd[suffix_y + 1][x]->empty; suffix_y++)
+				for (suffix_y = lower_limit + 2; curr_node && suffix_y < BOARDSIZE - 1 && !brd[suffix_y + 1][x]->empty; suffix_y++){
 					curr_node = gdg_follow_edge_idx(lexicon, curr_node, brd[suffix_y][x]->ch_idx);
+				}
 
-				if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[suffix_y][x]->ch_idx))
+				if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[suffix_y][x]->ch_idx)){
 					BIT_SET(brd[lower_limit + 1][x]->h_cross_set, ch_idx);
+				}
 			}
 		}
 
-		else
+		else {
 			brd[lower_limit + 1][x]->h_cross_score = cross_score;
 			brd[lower_limit + 1][x]->h_cross_set = lexicon->letter_sets[curr_node];
+		}
 	}
 }
 
 void update_v_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t left_limit, uint8_t right_limit, uint8_t y){
 	uint32_t curr_node = 0;
 
-	for (uint8_t curr = right_limit; curr > left_limit; curr--)
+	for (uint8_t curr = right_limit; curr > left_limit; curr--){
 		curr_node = gdg_follow_edge_idx(lexicon, curr_node, brd[y][curr]->ch_idx);
+	}
 
 	uint32_t start_node = curr_node;
 
@@ -348,19 +372,23 @@ void update_v_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t left_limit, uint8
 			uint8_t ch_idx = lexicon->edge_chars[curr_node][i];
 			curr_node = gdg_follow_edge_idx(lexicon, start_node, ch_idx);
 
-			for (prefix_x = left_limit - 2; curr_node && prefix_x > 0 && !brd[y][prefix_x - 1]->empty; prefix_x++)
+			for (prefix_x = left_limit - 2; curr_node && prefix_x > 0 && !brd[y][prefix_x - 1]->empty; prefix_x++){
 				curr_node = gdg_follow_edge_idx(lexicon, curr_node, brd[y][prefix_x]->ch_idx);	
+			}
 
-			if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[y][prefix_x]->ch_idx))
+			if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[y][prefix_x]->ch_idx)){
 				BIT_SET(brd[y][left_limit - 1]->h_cross_set, ch_idx);	
+			}
 
-			if (follow_word_x(brd, lexicon, curr_node, y, left_limit - 2, 0, -1))
+			if (follow_word_x(brd, lexicon, curr_node, y, left_limit - 2, 0, -1)){
 				BIT_SET(brd[y][left_limit - 1]->v_cross_set, ch_idx);
+			}
 		}
 	}
 
-	else if (left_limit > 0)
+	else if (left_limit > 0){
 		brd[y][left_limit - 1]->v_cross_set = lexicon->letter_sets[start_node];
+	}
 
 	if (right_limit < (BOARDSIZE - 1)){
 		uint32_t rev_node  = gdg_follow_edge_idx(lexicon, start_node, REVERSE);
@@ -373,16 +401,19 @@ void update_v_cross_sets(tile*** brd, GADDAG* lexicon, uint8_t left_limit, uint8
 				uint8_t ch_idx = lexicon->edge_chars[rev_node][i];
 				curr_node = gdg_follow_edge_idx(lexicon, rev_node, ch_idx);
 
-				for (suffix_x = right_limit + 2; curr_node && suffix_x < BOARDSIZE - 1 && !brd[y][suffix_x + 1]->empty; suffix_x++)
+				for (suffix_x = right_limit + 2; curr_node && suffix_x < BOARDSIZE - 1 && !brd[y][suffix_x + 1]->empty; suffix_x++){
 					curr_node = gdg_follow_edge_idx(lexicon, curr_node, brd[y][suffix_x]->ch_idx);
+				}
 
-				if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[y][suffix_x]->ch_idx))
+				if (curr_node && BIT_CHECK(lexicon->letter_sets[curr_node], brd[y][suffix_x]->ch_idx)){
 					BIT_SET(brd[y][right_limit + 1]->v_cross_set, ch_idx);
+				}
 			}
 		}
 
-		else
+		else {
 			brd[y][right_limit + 1]->v_cross_set = lexicon->letter_sets[rev_node];
+		}
 	}
 }
 
