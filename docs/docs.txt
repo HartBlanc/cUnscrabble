@@ -1,0 +1,25 @@
+#TO-DO
+- Implement greedy move selection
+- Implement place move function
+- Implement anchor generation algorithm
+
+#Design Decisions
+- Traversal algorithm
+	* Final states on nodes vs edges?
+
+- How to handle duplicate rack tiles
+	- duplicate rack tiles can lead to repeated traversels
+
+- Score calculation
+	* Dynamic Programming vs SIMD SoA approach
+
+- Maintain plays sorted by score? Heap?
+
+
+Vertical and horizontal cross-sets.
+Cross-sets at the end of words are for plays in the opposite direction.
+Cross-sets above and below a word are for plays in the same direction.
+
+"Just start in the ROOT NODE and follow arcs for each letter in the word (reading from right to left). The left cross set is the letter set on the last arc and the right cross set is the letter set on the 􏰁+ arc from the state that the last arc led to."
+
+"There is one rare case where the computation of a cross set is not deterministic. When a square is left of one word and right of another, then one must follow one word through the GADDAG, and then for each letter of the alphabet, follow that letter and then the letters in the other word to see if they lead to acceptance. For example, if PA and ABLE were separated by just one square, this computation would allow a word to be played perpendicular to them if it placed an R or a Y between them."

@@ -1,0 +1,188 @@
+log.txt
+
+30-08-19 - 1st day
+	Reading and interpreting cGADDAG
+
+	Understanding the data structure (excluding methods)
+		the struct is defined as follows:
+			
+			struct GADDAG_Struct {
+				uint32_t cap;
+				uint32_t num_words;
+				uint32_t num_nodes;
+				uint32_t num_edges;
+				uint32_t *edges;
+				uint32_t *letter_sets;
+			};
+
+		interpretation:
+			* Nodes 
+				- Nodes contain up to GDG_MAX_CHARS edges (a ... z + '*' and maybe '?')
+				- a node is simply a uint32_t based on the number of nodes in the array at the time of entry.
+				- this uint32_t is used to index the edges and letter_sets arrays
+				- Letter set - the  letters  which,  if  encountered  next,  make  a  word
+					- letter_sets is an array of uint32_t of size num_nodes
+					- each letter_set is implemented as a bit-array in which GDG_MAX_CHARS (27) bits are used
+
+			* Edges
+				- edges is an array of uint32_t of size N (num_nodes * GDG_MAX_CHARS (27)).
+				- edges have four attributes: 
+
+					- Source node (represented using index (node * GDG_MAX_CHARS))
+					- char value (represented using index (char - 97))
+					- Dest node (represented by the value at the index)
+
+				- the following ([node * GDG_MAX_CHARS + (char - 97)]) is used to follow an edge
+				- if the value is 0 then there is no edge with that (source node,  char) tuple
+				- otherwise the value stored at this index is the value of the destination node.
+
+31-08-19 - 2nd day
+	Mapping the project
+
+	Implementation completed in pure python
+		Interpreted language too slow to implement forward looking strategy
+		Profiling revealed that lexicon traversal was the key bottleneck
+		With secondary bottlenecks being score claculation
+		cGADDAG library represents good opportunity to learn C
+
+	Going Forward
+		Implement move gen engine in C for perfromance increases
+			- focus on bottlenecks (lexicon traversal/score calculation)
+		Python/Cython layers on top for WWF interaction / strategies
+
+	Move generation
+
+		Board State -> Locate Potential Anchors -> Calculate Cross Sets for required squares
+
+		Traverse GADDAG pruned by Cross Set
+			Initial node -> explore nodes in (edges & letter_set)
+			-> depth first search extending leftwards until '*' is reached
+				-> add all words in letter set to legal plays
+			-> extend rightwards until no nodes
+				-> add all words in letter set to legal plays
+
+		-> transpose and repeat
+
+		-> Calculate scores for plays
+		-> select play
+		-> place tiles
+			-> update cross sets
+			-> update potential anchors
+		
+		-> repeat
+
+	Outstanding questions:
+		Where / How to best store legal_plays?
+		Incremental and Independent implementations (updating p_anchors / cross-sets)
+		Is the fixed_width edge implementation inefficent?
+		Transpose board each time? / maintain a transposed board? / transpose the algorithm?
+			- Transposing board moves every square each turn (Time inefficient)
+			- Refactoring the algorithm to operate transposed (High complexity?)
+		
+
+02-09-19 - 3rd day
+
+		How to most efficiently prune GADDAG traversal?
+			* Pruning involves finding the intersection of the cross-set / rack / gaddag edges
+			* Intersection can be found quickly using bitwise &&
+
+			* How to iterate over the intersection values?
+				
+				* iterate over edges // easier
+					* can pre-calculate edges/number of edges for all nodes
+				
+				* iterate over rack // might be more efficient?
+					* How to handle duplicate values?
+					* How to handle dynamic updating?
+					* could maintain some kind of sorted structure?
+				
+				* which is likely to be smaller?
+					* rack has max length of 7 whereas each node has max of 26.
+					* rack can have duplicate values which do not need to be visited again
+					* would need to check empirically to be sure but seems to lean to rack
+
+			* the rack can have multiple values of the same char so it is not always clear when to unset the rack bits
+				* struct rack{
+					uint32_t set;
+					uint32_t* char_counts; //includes blanks
+				}
+
+03-09-19 - 4th day
+	
+	* pre-calculating gdg node edges allows for more efficient traversal
+		TO DO: 
+			* update node design to allow for node.edge_count and node.edges
+				- node.edges needs to provide edge value and next node
+				- maybe just need another two arrays on top of letter_sets and edges?
+			* determine best way to do double ended string building
+				- deque?
+
+04-09-19 - 5th day
+
+	* How best to structure edge arrays?
+		* flat/multi-level, static/dynamic
+		* flat/multi-level appears to be compiler optimised anyway.
+
+	* How to Measure Page Faults?:
+		* https://stackoverflow.com/questions/23302763/measure-page-faults-from-a-c-program
+
+	* Consider reimplementing board as array of structs instead of parrallel arrays
+		* AoS better when accessing attributes of objects at similar times
+			(e.g. board.empties, board.anchors...)
+		* PA better when accessing the same attribute of many objects at similar times
+			(e.g. edge_counts[3], edge_counts[5], edge_counts[7])
+
+	* Don't forget cross-scores...
+
+05-09-19 - 5th day
+	* Determined that anchor definition is incorrect
+
+06-09-19 - 6th day
+	* Consider storing traversal conditions directly in board for each square rather than calculating from empty/boardsize each time
+
+	* Consider checking anchor condition at gen time vs maintaining a dense array of anchors
+
+
+
+
+
+Glossary:
+	Anchor: 
+		The anchor of a newly place world is the left-most, newly placed tile that is adjacent to an existing tile. #TO-DO(Update definition)
+
+	Potential Anchor: 
+		The candidate places where new words could be placed, are all the tiles adjacent to tiles already on the board. #TO-DO (Update definition)
+
+	Letter Set: 
+		The letters which, if encountered next, make a word
+
+	Cross Set: 
+		The set of letters that can form valid crosswords.
+
+	Corssword: 
+		a word which is formed in the opposite axis to the axis being extended in
+
+	Cross Score: 
+		The points available from forming a crossword on a given square
+
+	Move: 
+		When a word is placed on a particular tile defined by (word, x, y, direction, turn)
+
+	Plays: 
+		a candidate/potential move
+
+	Rack: 
+		The set of tiles available to play
+
+	Lexicon: 
+		The set of legal words
+
+
+
+
+
+
+
+
+
+
